@@ -1,13 +1,15 @@
-﻿namespace RunnersListLibrary;
+﻿using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
+using RunnersListLibrary.Secrets;
 
-internal class HelloSayer : IHelloSayer
+namespace RunnersListLibrary;
+
+internal class HelloSayer(IOptions<OpenAiSecrets> secrets) : IHelloSayer
 {
-    #region
-
     public void SayHello()
     {
         Console.WriteLine("Hello from HelloSayer!");
+        Console.WriteLine($"Secret: {secrets.Value.ApiKey}");
+        var kernel = Kernel.CreateBuilder();
     }
-
-    #endregion
 }

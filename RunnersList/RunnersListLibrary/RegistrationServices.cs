@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RunnersListLibrary.Spotify;
 
 namespace RunnersListLibrary
 {
@@ -8,6 +9,7 @@ namespace RunnersListLibrary
         {
             // Register your services here
             services.AddTransient<IHelloSayer, HelloSayer>();
+            services.AddTransient<ISpotifyConnector, SpotifyConnector>();
         }
     }
 }
