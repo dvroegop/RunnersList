@@ -13,14 +13,6 @@ var builder = new ConfigurationBuilder()
     .AddEnvironmentVariables();
 
 var configurationRoot = builder.Build();
-//// DEBUG: Print all loaded configuration values
-//Console.WriteLine("=== Loaded Configuration ===");
-//foreach (var kvp in configurationRoot.AsEnumerable())
-//{
-//    Console.WriteLine($"{kvp.Key}: {kvp.Value}");
-//}
-
-//Console.WriteLine($"ApiKey from direct retrieval: {configurationRoot.GetValue<string>("OpenAiSecrets:ApiKey")}");
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((hostingContext, config)=>{
@@ -33,7 +25,6 @@ var host = Host.CreateDefaultBuilder(args)
 
         var registrationServices = new RegistrationServices();
         registrationServices.RegisterServices(services);
-        //var secretTest = context.Configuration.GetValue<string>("OpenAiSecrets:ApiKey");
         services.Configure<OpenAiSecrets>(context.Configuration.GetSection("OpenAiSecrets"));
     })
     .Build();
