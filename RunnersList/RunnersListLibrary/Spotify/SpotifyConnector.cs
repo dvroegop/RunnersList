@@ -15,9 +15,9 @@ internal class SpotifyConnector
         return await Task.FromResult("HelloToken");
     }
 
-    [KernelFunction("get_favorite_genres")]
-    [Description("Returns the favority genres from this user")]
-    public async Task<string[]> GetGenres(string token)
+    [KernelFunction("get_top10_songs_for_genre")]
+    [Description("Returns the top 10 songs in a given genre")]
+    public async Task<string[]> GetTop10Songs([Description("The favorite genre for this run, ask the user what they want")]FavoriteGenres genre)
     {
         return await Task.FromResult(new[] { "Rock", "Pop" });
     }
@@ -28,4 +28,11 @@ public class SpotifyCredentials
 {
     public string? UserName { get; set; }
     public string? Password { get; set; }
+}
+
+public enum FavoriteGenres
+{
+    Rock,
+    Pop,
+    Eighties
 }

@@ -40,8 +40,8 @@ internal class HelloSayer(IOptions<OpenAiSecrets> secrets) : IHelloSayer
         var history = new ChatHistory();
         history.AddSystemMessage("You are helping me creating a Spotify Playlist for my running workout. " +
                                  "You use the method to get the Spotify Token, then you can use that in your calls to Spotify." +
-                                 "After that, you get my favorite genre from Spotify. This is what you show to me.");
-        history.AddUserMessage("Please get the token for Spotify");
+                                 "After that, ask for the genre they want for their playlist, then get the top 10 songs.");
+        history.AddUserMessage("Please generate a running playlist for me.");
         try
         {
             var result = await chatCompletionService.GetChatMessageContentsAsync(
