@@ -1,22 +1,31 @@
 ﻿using System.ComponentModel;
-using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using RunnersListLibrary.Secrets;
 
-namespace RunnersListLibrary.Spotify
+namespace RunnersListLibrary.Spotify;
+
+internal class SpotifyConnector
 {
-    internal class SpotifyConnector(IOptions<OpenAiSecrets> secrets) : ISpotifyConnector
+    #region
+
+    // Use snake_case for kernel functions, since that is the standard for Python. 
+    [KernelFunction("get_spotify_token")]
+    [Description("Gets the Spotify token, using the specified credentials in secrets.")]
+    public async Task<string> GetSpotifyToken(SpotifyCredentials credentials)
     {
-        private readonly IOptions<OpenAiSecrets> _secrets = secrets;
-
-        #region
-
-        [KernelFunction("SpotifyConnect")]
-        [Description("Connects to the spotify service.")]
-        public void Connect()
-        {
-            Console.WriteLine("Connecting to Spotify...");
-        }
-        #endregion
+        return await Task.FromResult("HelloToken");
     }
+
+    [KernelFunction("get_favorite_genres")]
+    [Description("Returns the favority genres from this user")]
+    public async Task<string[]> GetGenres(string token)
+    {
+        return await Task.FromResult(new[] { "Rock", "Pop" });
+    }
+    #endregion
+}
+
+public class SpotifyCredentials
+{
+    public string? UserName { get; set; }
+    public string? Password { get; set; }
 }

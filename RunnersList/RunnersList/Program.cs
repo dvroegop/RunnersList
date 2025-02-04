@@ -30,4 +30,4 @@ var host = Host.CreateDefaultBuilder(args)
     .Build();
 
 var runnerService = host.Services.GetRequiredService<IRunnerService>();
-runnerService.Run();
+await runnerService.Run();

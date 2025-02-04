@@ -6,10 +6,10 @@ public class RunnerService(IHelloSayer helloSayer) : IRunnerService
 {
     #region
 
-    public void Run()
+    public async Task Run()
     {
         Console.WriteLine("RunnerService is running...");
-        helloSayer.SayHello();
+        await helloSayer.SayHello();
     }
 
     #endregion

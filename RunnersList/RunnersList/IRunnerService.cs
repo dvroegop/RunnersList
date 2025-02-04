@@ -2,5 +2,5 @@
 
 public interface IRunnerService
 {
-    void Run();
+    Task Run();
 }

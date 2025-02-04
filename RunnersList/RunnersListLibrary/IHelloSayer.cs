@@ -2,5 +2,5 @@
 
 public interface IHelloSayer
 {
-    void SayHello();
+    Task SayHello();
 }
