@@ -1,24 +1,21 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using RunnersList;
 using RunnersListLibrary;
 using RunnersListLibrary.Secrets;
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.json", true, true)
     .AddUserSecrets<Program>()
     .AddEnvironmentVariables();
 
 var configurationRoot = builder.Build();
 
 var host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration((hostingContext, config)=>{
-        config.AddConfiguration(configurationRoot);
-    })
-.ConfigureServices((context, services) =>
+    .ConfigureAppConfiguration((hostingContext, config) => { config.AddConfiguration(configurationRoot); })
+    .ConfigureServices((context, services) =>
     {
         // Register your services here
         services.AddTransient<IRunnerService, RunnerService>();

@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using RunnersListLibrary.Secrets;
 using RunnersListLibrary.Spotify;
 
@@ -24,13 +24,13 @@ internal class HelloSayer(IOptions<OpenAiSecrets> secrets) : IHelloSayer
             secrets.Value.ApiKey);
 
 
-        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
+        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
 
         var kernel = kernelBuilder.Build();
 
         kernel.Plugins.AddFromType<SpotifyConnector>("SpotifyConnector");
 
-        var openAiPromptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
+        var openAiPromptExecutionSettings = new AzureOpenAIPromptExecutionSettings
         {
             FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
         };
@@ -42,14 +42,37 @@ internal class HelloSayer(IOptions<OpenAiSecrets> secrets) : IHelloSayer
                                  "You use the method to get the Spotify Token, then you can use that in your calls to Spotify." +
                                  "After that, ask for the genre they want for their playlist, then get the top 10 songs.");
         history.AddUserMessage("Please generate a running playlist for me.");
+
         try
         {
-            var result = await chatCompletionService.GetChatMessageContentsAsync(
-                history,
-                executionSettings: openAiPromptExecutionSettings,
-                kernel: kernel);
-            var x = result[0].ToString();
-            Console.WriteLine(x);
+            var canContinue = true;
+            while (canContinue)
+            {
+                var responseBuilder = new StringBuilder();
+
+
+                await foreach (var response in chatCompletionService.GetStreamingChatMessageContentsAsync(
+                                   history,
+                                   openAiPromptExecutionSettings,
+                                   kernel))
+                {
+                    var content = response.Content;
+                    if (!string.IsNullOrWhiteSpace(content))
+                    {
+                        Console.Write(content);
+                        responseBuilder.Append(content);
+                    }
+                }
+
+                history.AddAssistantMessage(responseBuilder.ToString());
+
+                Console.Write(" > ");
+                var responseFromUser = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(responseFromUser) || responseFromUser.ToUpperInvariant().Trim() == "EXIT")
+                    canContinue = false;
+                else
+                    history.AddUserMessage(responseFromUser);
+            }
         }
         catch (Exception ex)
         {

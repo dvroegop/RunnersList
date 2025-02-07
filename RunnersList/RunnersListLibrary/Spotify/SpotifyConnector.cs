@@ -19,7 +19,38 @@ internal class SpotifyConnector
     [Description("Returns the top 10 songs in a given genre")]
     public async Task<string[]> GetTop10Songs([Description("The favorite genre for this run, ask the user what they want")]FavoriteGenres genre)
     {
-        return await Task.FromResult(new[] { "Rock", "Pop" });
+        var result = new List<string>();
+        switch (genre)
+        {
+            case FavoriteGenres.Eighties:
+                result.Add("Take on me");
+                result.Add("Sanctify yourself");
+                break;
+
+            case FavoriteGenres.Rock:
+                result.Add("Bohemian Rhapsody");
+                result.Add("Born to run");
+                break;
+
+            case FavoriteGenres.Pop:
+                result.Add("Shallow");
+                result.Add("Frozen");
+
+                break;
+
+            default:
+                result.Add("Leef");
+                break;
+        }
+        return await Task.FromResult(result.ToArray());
+    }
+
+
+    [KernelFunction("get_favorite_genres")]
+    [Description("Returns the favorite genres for the user")]
+    public async Task<FavoriteGenres[]> GetFavoriteGenres()
+    {
+        return await Task.FromResult(new [] {FavoriteGenres.Eighties, FavoriteGenres.Pop, FavoriteGenres.Rock});
     }
     #endregion
 }
