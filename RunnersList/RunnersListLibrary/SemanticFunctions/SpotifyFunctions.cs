@@ -1,30 +1,31 @@
 ﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using RunnersListLibrary.Spotify;
+using RunnersListLibrary.Spotify.DTO;
 
 namespace RunnersListLibrary.SemanticFunctions;
 
 public class SpotifyFunctions(ISpotifyConnector spotifyConnector)
 {
-    private readonly ISpotifyConnector _spotifyConnector = spotifyConnector;
-
     private string? _token;
+
     private DateTime _tokenAcquired = DateTime.MinValue;
+
     // Use snake_case for kernel functions, since that is the standard for Python. 
     [KernelFunction("get_spotify_token")]
     [Description("Gets the Spotify token, using the specified credentials in secrets.")]
     public async Task<string?> GetSpotifyToken(SpotifyCredentials credentials)
     {
         // Tokens can live for one hour. So we can prevent calling into the API if it less than one hour old.
-        if (!string.IsNullOrEmpty(_token))
+        if (string.IsNullOrEmpty(_token))
         {
-            _token = await _spotifyConnector.GetSpotifyToken();
+            _token = await spotifyConnector.GetSpotifyTokenAsync();
             _tokenAcquired = DateTime.Now;
         }
         else if (DateTime.Now - _tokenAcquired > TimeSpan.FromHours(1))
         {
-            _token = await _spotifyConnector.GetSpotifyToken();
+            _token = await spotifyConnector.GetSpotifyTokenAsync();
             _tokenAcquired = DateTime.Now;
         }
 
@@ -37,31 +38,19 @@ public class SpotifyFunctions(ISpotifyConnector spotifyConnector)
         [Description("The favorite genre for this run, ask the user what they want")]
         FavoriteGenres genre)
     {
+
+        var songResult = await spotifyConnector.GetSongAsync(_token!);
         var result = new List<SpotifySong>();
-        switch (genre)
+
+        foreach (var item in songResult.Tracks.Items)
         {
-            case FavoriteGenres.Eighties:
-                result.Add(new SpotifySong("Take on me", "A-Ha", Guid.NewGuid()));
-                result.Add(new SpotifySong("Sanctify yourself", "Simple Minds", Guid.NewGuid()));
-                break;
-
-            case FavoriteGenres.Rock:
-                result.Add(new SpotifySong("Bohemian Rhapsody", "Queen", Guid.NewGuid()));
-                result.Add(new SpotifySong("Born to run", "Bruce Springsteen", Guid.NewGuid()));
-                break;
-
-            case FavoriteGenres.Pop:
-                result.Add(new SpotifySong("Shallow", "Lady Gaga", Guid.NewGuid()));
-                result.Add(new SpotifySong("This love", "Maroon 5", Guid.NewGuid()));
-
-                break;
-
-            default:
-                result.Add(new SpotifySong("Leef", "Andre Hazes", Guid.NewGuid()));
-                break;
+            var artist = item.Artists[0].Name;
+            var songName = item.Name;
+            SpotifySong song = new SpotifySong(songName, artist, item.Id);
+            result.Add(song);
         }
 
-        return await Task.FromResult(result.ToArray());
+        return result.ToArray();
     }
 
     [KernelFunction("create_playlist_in_spotify")]

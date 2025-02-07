@@ -1,10 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Security.AccessControl;
 using System.Text;
-using System.Text.Json;
-using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,12 +14,11 @@ namespace RunnersListLibrary;
 
 internal class HelloSayer(
     IHttpClientFactory httpClientFactory,
-    IOptions<OpenAiSecrets> azureOpenAiSecrets, 
+    IOptions<OpenAiSecrets> azureOpenAiSecrets,
     IOptions<SpotifySecrets> spotifySecrets,
     ISpotifyConnector spotifyConnector) : IHelloSayer
 {
     #region
-
 
     public async Task SayHello()
     {
@@ -35,13 +29,14 @@ internal class HelloSayer(
             azureOpenAiSecrets.Value.EndPoint,
             azureOpenAiSecrets.Value.ApiKey);
 
-        kernelBuilder.Services.AddSingleton<ISpotifyConnector>(spotifyConnector);
-
-        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Debug));
-
-        var kernel = kernelBuilder.Build();
         
-        kernel.Plugins.AddFromType<SpotifyFunctions>("SpotifyFunctions");
+        kernelBuilder.Services.AddSingleton<ISpotifyConnector>(sp => spotifyConnector);
+
+        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
+        kernelBuilder.Plugins.AddFromType<SpotifyFunctions>();
+        var kernel = kernelBuilder.Build();
+
+        //kernel.Plugins.AddFromType<SpotifyFunctions>("SpotifyFunctions");
 
         var openAiPromptExecutionSettings = new AzureOpenAIPromptExecutionSettings
         {
@@ -53,8 +48,8 @@ internal class HelloSayer(
         var history = new ChatHistory();
         history.AddSystemMessage("You are helping me creating a Spotify Playlist for my running workout. " +
                                  "You use the method to get the Spotify Token, then you can use that in your calls to Spotify." +
-                                 "Pass the token to each call to Spotify."+
-                                 "After that, ask for the genre they want for their playlist, then get the top 10 songs."+
+                                 "Pass the token to each call to Spotify." +
+                                 "After that, ask for the genre they want for their playlist, then get the top 10 songs." +
                                  "When showing the list to the user, call the Spotify connector to create the playlist there, passing in the IDs for the songs.");
         history.AddUserMessage("Please generate a running playlist for me.");
 
@@ -78,7 +73,7 @@ internal class HelloSayer(
                         responseBuilder.Append(content);
                         content.ToAscii();
 
-                        if(content.Contains("\n"))
+                        if (content.Contains("\n"))
                             Console.WriteLine(Environment.NewLine);
                     }
                 }
@@ -107,10 +102,7 @@ public static class StringExtensions
     public static void ToAscii(this string source)
     {
         // Go through every character in the string, and display the ascii value
-        foreach (var c in source)
-        {
-            Debug.Write($"{(int)c} ");
-        }
+        foreach (var c in source) Debug.Write($"{(int)c} ");
 
         Debug.WriteLine($"  : {source}");
     }

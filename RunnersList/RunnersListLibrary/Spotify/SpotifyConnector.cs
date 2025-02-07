@@ -3,17 +3,21 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Web;
 using Microsoft.Extensions.Options;
 using RunnersListLibrary.Secrets;
+using RunnersListLibrary.Spotify.DTO.SpotifyDataObjects;
 
 namespace RunnersListLibrary.Spotify;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-internal class SpotifyConnector(IHttpClientFactory httpClientFactory, IOptions<SpotifySecrets> spotifySecrets)
+internal class SpotifyConnector(
+    IHttpClientFactory httpClientFactory, 
+    IOptions<SpotifySecrets> spotifySecrets)
     : ISpotifyConnector
 {
-    public async Task<string> GetSpotifyToken()
+    public async Task<string> GetSpotifyTokenAsync()
     {
         var client = httpClientFactory.CreateClient("SpotifyClient");
         var scopes = "playlist-modify-public playlist-modify-private";
@@ -27,6 +31,8 @@ internal class SpotifyConnector(IHttpClientFactory httpClientFactory, IOptions<S
                                $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
                                $"&scope={Uri.EscapeDataString(scopes)}" +
                                $"&state={state}";
+
+        Console.WriteLine(authorizationUrl);
 
         using var http = new HttpListener();
         http.Prefixes.Add(spotifySecrets.Value.RedirectUri);
@@ -66,6 +72,23 @@ internal class SpotifyConnector(IHttpClientFactory httpClientFactory, IOptions<S
 
         return accessToken;
     }
+
+
+    public async Task<GetTracksResult> GetSongAsync(string token)
+    {
+        var httpClient = httpClientFactory.CreateClient("SpotifyClient");
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await httpClient.GetAsync("https://api.spotify.com/v1/search?q=genre%3Arock&type=track");
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        var data =   System.Text.Json.JsonSerializer.Deserialize<GetTracksResult>(content);
+        return data;
+
+    }
+
+
+    #region Private helper methods
 
     private static async Task<string> GetAccessTokenAsync(string code, string clientId, string clientSecret,
         string redirectUri)
@@ -113,4 +136,6 @@ internal class SpotifyConnector(IHttpClientFactory httpClientFactory, IOptions<S
         response.OutputStream.Write(buffer, 0, buffer.Length);
         response.OutputStream.Close();
     }
+
+    #endregion
 }
