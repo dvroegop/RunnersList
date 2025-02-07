@@ -9,7 +9,7 @@ namespace RunnersListLibrary
         {
             // Register your services here
             services.AddTransient<IHelloSayer, HelloSayer>();
-            //services.AddTransient<ISpotifyConnector, SpotifyConnector>();
+            services.AddSingleton<ISpotifyConnector, SpotifyConnector>();
         }
     }
 }

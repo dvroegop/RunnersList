@@ -12,6 +12,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using RunnersListLibrary.Secrets;
+using RunnersListLibrary.SemanticFunctions;
 using RunnersListLibrary.Spotify;
 
 namespace RunnersListLibrary;
@@ -19,113 +20,11 @@ namespace RunnersListLibrary;
 internal class HelloSayer(
     IHttpClientFactory httpClientFactory,
     IOptions<OpenAiSecrets> azureOpenAiSecrets, 
-    IOptions<SpotifySecrets> spotifySecrets) : IHelloSayer
+    IOptions<SpotifySecrets> spotifySecrets,
+    ISpotifyConnector spotifyConnector) : IHelloSayer
 {
     #region
 
-
-    public async Task SayHello2()
-    {
-        Console.WriteLine(spotifySecrets.Value.RedirectUri);
-
-        var client = httpClientFactory.CreateClient("SpotifyClient");
-        string scopes = "playlist-modify-public playlist-modify-private";
-
-        string state = Guid.NewGuid().ToString("N");
-        var clientId = spotifySecrets.Value.ClientId;
-        var redirectUri = spotifySecrets.Value.RedirectUri;
-
-        string authorizationUrl = $"https://accounts.spotify.com/authorize?client_id={clientId}" +
-                                  $"&response_type=code" +
-                                  $"&redirect_uri={Uri.EscapeDataString(redirectUri)}" +
-                                  $"&scope={Uri.EscapeDataString(scopes)}" +
-                                  $"&state={state}";
-
-        Console.WriteLine(authorizationUrl);
-
-        using (var http = new HttpListener())
-        {
-            http.Prefixes.Add(spotifySecrets.Value.RedirectUri);
-            http.Start();
-
-            var context = await http.GetContextAsync();
-            var request = context.Request;
-            var response = context.Response;
-
-            var queryParams = HttpUtility.ParseQueryString(request.Url.Query);
-            string receivedState = queryParams["state"];
-            string code = queryParams["code"];
-            string error = queryParams["error"];
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                Console.WriteLine($"Error during authorization: {error}");
-                RespondToBrowser(response, "Authorization failed. You can close this window.");
-                return;
-            }
-
-            if (state != receivedState)
-            {
-                Console.WriteLine("State does not match. Possible security issue!");
-                RespondToBrowser(response, "Invalid state. You can close this window.");
-            }
-
-            string accessToken = await GetAccessTokenAsync(code, clientId, spotifySecrets.Value.ClientSecret, redirectUri);
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                Console.WriteLine("Failed to get the access token.");
-                return;
-            }
-
-            Console.WriteLine($"Successfully got the token: {accessToken}");
-        }
-        await Task.CompletedTask;
-    }
-
-    static async Task<string> GetAccessTokenAsync(string code, string clientId, string clientSecret, string redirectUri)
-    {
-        using (var client = new HttpClient())
-        {
-            string tokenUrl = "https://accounts.spotify.com/api/token";
-
-            // Build the POST parameters
-            var parameters = new Dictionary<string, string>
-            {
-                {"grant_type", "authorization_code"},
-                {"code", code},
-                {"redirect_uri", redirectUri}
-            };
-
-            var requestContent = new FormUrlEncodedContent(parameters);
-
-            // Set the authorization header using client credentials
-            var authHeader = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authHeader);
-
-            var response = await client.PostAsync(tokenUrl, requestContent);
-            var content = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Error retrieving access token: " + content);
-                return null;
-            }
-
-            using (var document = JsonDocument.Parse(content))
-            {
-                var root = document.RootElement;
-                string accessToken = root.GetProperty("access_token").GetString();
-                return accessToken;
-            }
-        }
-    }
-    static void RespondToBrowser(HttpListenerResponse response, string message)
-    {
-        byte[] buffer = Encoding.UTF8.GetBytes(message);
-        response.ContentLength64 = buffer.Length;
-        response.OutputStream.Write(buffer, 0, buffer.Length);
-        response.OutputStream.Close();
-    }
 
     public async Task SayHello()
     {
@@ -136,12 +35,13 @@ internal class HelloSayer(
             azureOpenAiSecrets.Value.EndPoint,
             azureOpenAiSecrets.Value.ApiKey);
 
+        kernelBuilder.Services.AddSingleton(spotifyConnector);
 
         kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Debug));
 
         var kernel = kernelBuilder.Build();
 
-        kernel.Plugins.AddFromType<SpotifyConnector>("SpotifyConnector");
+        kernel.Plugins.AddFromType<SpotifyFunctions>("SpotifyFunctions");
 
         var openAiPromptExecutionSettings = new AzureOpenAIPromptExecutionSettings
         {

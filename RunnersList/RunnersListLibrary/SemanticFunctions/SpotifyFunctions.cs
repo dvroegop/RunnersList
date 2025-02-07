@@ -1,10 +1,17 @@
 ﻿using System.ComponentModel;
 using Microsoft.SemanticKernel;
+using RunnersListLibrary.Spotify;
 
-namespace RunnersListLibrary.Spotify;
+namespace RunnersListLibrary.SemanticFunctions;
 
-internal class SpotifyFunctions
+public class SpotifyFunctions
 {
+    private readonly ISpotifyConnector _spotifyConnector;
+
+    public SpotifyFunctions(ISpotifyConnector spotifyConnector)
+    {
+        _spotifyConnector = spotifyConnector;
+    }
     // Use snake_case for kernel functions, since that is the standard for Python. 
     [KernelFunction("get_spotify_token")]
     [Description("Gets the Spotify token, using the specified credentials in secrets.")]
