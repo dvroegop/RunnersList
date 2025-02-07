@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Security.AccessControl;
 using System.Text;
@@ -23,7 +24,7 @@ internal class HelloSayer(
     #region
 
 
-    public async Task SayHello()
+    public async Task SayHello2()
     {
         Console.WriteLine(spotifySecrets.Value.RedirectUri);
 
@@ -126,7 +127,7 @@ internal class HelloSayer(
         response.OutputStream.Close();
     }
 
-    public async Task SayHello2()
+    public async Task SayHello()
     {
         var kernelBuilder = Kernel.CreateBuilder();
 
@@ -136,7 +137,7 @@ internal class HelloSayer(
             azureOpenAiSecrets.Value.ApiKey);
 
 
-        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
+        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Debug));
 
         var kernel = kernelBuilder.Build();
 
@@ -175,6 +176,10 @@ internal class HelloSayer(
                     {
                         Console.Write(content);
                         responseBuilder.Append(content);
+                        content.ToAscii();
+
+                        if(content.Contains("\n"))
+                            Console.WriteLine(Environment.NewLine);
                     }
                 }
 
@@ -195,4 +200,18 @@ internal class HelloSayer(
     }
 
     #endregion
+}
+
+public static class StringExtensions
+{
+    public static void ToAscii(this string source)
+    {
+        // Go through every character in the string, and display the ascii value
+        foreach (var c in source)
+        {
+            Debug.Write($"{(int)c} ");
+        }
+
+        Debug.WriteLine($"  : {source}");
+    }
 }
