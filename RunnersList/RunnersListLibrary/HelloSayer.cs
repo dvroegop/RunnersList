@@ -35,12 +35,12 @@ internal class HelloSayer(
             azureOpenAiSecrets.Value.EndPoint,
             azureOpenAiSecrets.Value.ApiKey);
 
-        kernelBuilder.Services.AddSingleton(spotifyConnector);
+        kernelBuilder.Services.AddSingleton<ISpotifyConnector>(spotifyConnector);
 
         kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Debug));
 
         var kernel = kernelBuilder.Build();
-
+        
         kernel.Plugins.AddFromType<SpotifyFunctions>("SpotifyFunctions");
 
         var openAiPromptExecutionSettings = new AzureOpenAIPromptExecutionSettings

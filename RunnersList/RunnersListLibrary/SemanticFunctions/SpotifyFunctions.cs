@@ -1,23 +1,34 @@
 ﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.SemanticKernel;
 using RunnersListLibrary.Spotify;
 
 namespace RunnersListLibrary.SemanticFunctions;
 
-public class SpotifyFunctions
+public class SpotifyFunctions(ISpotifyConnector spotifyConnector)
 {
-    private readonly ISpotifyConnector _spotifyConnector;
+    private readonly ISpotifyConnector _spotifyConnector = spotifyConnector;
 
-    public SpotifyFunctions(ISpotifyConnector spotifyConnector)
-    {
-        _spotifyConnector = spotifyConnector;
-    }
+    private string? _token;
+    private DateTime _tokenAcquired = DateTime.MinValue;
     // Use snake_case for kernel functions, since that is the standard for Python. 
     [KernelFunction("get_spotify_token")]
     [Description("Gets the Spotify token, using the specified credentials in secrets.")]
-    public async Task<string> GetSpotifyToken(SpotifyCredentials credentials)
+    public async Task<string?> GetSpotifyToken(SpotifyCredentials credentials)
     {
-        return await Task.FromResult("HelloToken");
+        // Tokens can live for one hour. So we can prevent calling into the API if it less than one hour old.
+        if (!string.IsNullOrEmpty(_token))
+        {
+            _token = await _spotifyConnector.GetSpotifyToken();
+            _tokenAcquired = DateTime.Now;
+        }
+        else if (DateTime.Now - _tokenAcquired > TimeSpan.FromHours(1))
+        {
+            _token = await _spotifyConnector.GetSpotifyToken();
+            _tokenAcquired = DateTime.Now;
+        }
+
+        return _token;
     }
 
     [KernelFunction("get_top10_songs_for_genre")]
