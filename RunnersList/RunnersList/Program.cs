@@ -22,7 +22,13 @@ var host = Host.CreateDefaultBuilder(args)
 
         var registrationServices = new RegistrationServices();
         registrationServices.RegisterServices(services);
+
+        // Add local services
+        services.AddHttpClient();
+
+        // Add secrets
         services.Configure<OpenAiSecrets>(context.Configuration.GetSection("OpenAiSecrets"));
+        services.Configure<SpotifySecrets>(context.Configuration.GetSection("SpotifySecrets"));
     })
     .Build();
 
