@@ -20,7 +20,7 @@ internal class HelloSayer(
 {
     #region
 
-    public async Task SayHello()
+    public async Task SayHello2()
     {
         var artist = "Bruce Springsteen";
         var title = "Fire";
@@ -28,7 +28,7 @@ internal class HelloSayer(
         var songBPm = await songBpmConnector.GetSongBpmAsync(artist, title);
     }
 
-    public async Task SayHello2()
+    public async Task SayHello()
     {
         var kernelBuilder = Kernel.CreateBuilder();
 
@@ -39,13 +39,14 @@ internal class HelloSayer(
 
         
         kernelBuilder.Services.AddSingleton<ISpotifyConnector>(sp => spotifyConnector);
+        kernelBuilder.Services.AddSingleton<ISongBpmConnector>(sp => songBpmConnector);
 
         kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
         kernelBuilder.Plugins.AddFromType<SpotifyFunctions>();
+        kernelBuilder.Plugins.AddFromType<SongBpmFunctions>();
         var kernel = kernelBuilder.Build();
 
-        //kernel.Plugins.AddFromType<SpotifyFunctions>("SpotifyFunctions");
-
+        
         var openAiPromptExecutionSettings = new AzureOpenAIPromptExecutionSettings
         {
             FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
@@ -58,6 +59,7 @@ internal class HelloSayer(
                                  "You use the method to get the Spotify Token, then you can use that in your calls to Spotify." +
                                  "Pass the token to each call to Spotify." +
                                  "After that, ask for the genre they want for their playlist, then get the top 10 songs." +
+                                 "For each song, look up the beats per minute for that song using the correct API. The API will add that information to the song."+
                                  "When showing the list to the user, call the Spotify connector to create the playlist there, passing in the IDs for the songs.");
         history.AddUserMessage("Please generate a running playlist for me.");
 

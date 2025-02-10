@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Options;
 using RunnersListLibrary.DTO.SongBpm;
 using RunnersListLibrary.Secrets;
 
@@ -21,9 +22,25 @@ internal class SongBpmConnector(
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
 
-        var parsedContent = System.Text.Json.JsonSerializer.Deserialize<SongBpmSearchResult>(content);
-        return 42;
+        try
+        {
+            var parsedContent = System.Text.Json.JsonSerializer.Deserialize<SongBpmSearchResult>(content);
+
+            if (parsedContent == null || parsedContent.Search.Count == 0)
+                return -1;
+
+            // Always get the first result
+            var bpm = int.Parse(parsedContent.Search[0].Tempo);
+            return bpm;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error in parsing JSON: {ex.Message}");
+            return -1;
+        }
+        
     }
+
 }
 
 public interface ISongBpmConnector
