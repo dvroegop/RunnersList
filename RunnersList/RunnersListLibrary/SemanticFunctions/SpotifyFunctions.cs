@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
+using RunnersListLibrary.DTO;
 using RunnersListLibrary.Spotify;
-using RunnersListLibrary.Spotify.DTO;
 
 namespace RunnersListLibrary.SemanticFunctions;
 

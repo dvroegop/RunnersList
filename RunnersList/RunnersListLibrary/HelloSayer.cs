@@ -8,19 +8,27 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using RunnersListLibrary.Secrets;
 using RunnersListLibrary.SemanticFunctions;
+using RunnersListLibrary.SongBpm;
 using RunnersListLibrary.Spotify;
 
 namespace RunnersListLibrary;
 
 internal class HelloSayer(
-    IHttpClientFactory httpClientFactory,
     IOptions<OpenAiSecrets> azureOpenAiSecrets,
-    IOptions<SpotifySecrets> spotifySecrets,
+    ISongBpmConnector songBpmConnector,
     ISpotifyConnector spotifyConnector) : IHelloSayer
 {
     #region
 
     public async Task SayHello()
+    {
+        var artist = "Bruce Springsteen";
+        var title = "Fire";
+
+        var songBPm = await songBpmConnector.GetSongBpmAsync(artist, title);
+    }
+
+    public async Task SayHello2()
     {
         var kernelBuilder = Kernel.CreateBuilder();
 

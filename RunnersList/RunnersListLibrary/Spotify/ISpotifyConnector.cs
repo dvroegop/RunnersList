@@ -1,4 +1,4 @@
-﻿using RunnersListLibrary.Spotify.DTO.SpotifyDataObjects;
+﻿using RunnersListLibrary.DTO.SpotifyDataObjects;
 
 namespace RunnersListLibrary.Spotify;
 

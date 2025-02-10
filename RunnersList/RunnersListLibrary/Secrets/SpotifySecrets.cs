@@ -1,4 +1,6 @@
-﻿namespace RunnersListLibrary.Secrets;
+﻿using System.Security.Cryptography.X509Certificates;
+
+namespace RunnersListLibrary.Secrets;
 
 public class SpotifySecrets
 {

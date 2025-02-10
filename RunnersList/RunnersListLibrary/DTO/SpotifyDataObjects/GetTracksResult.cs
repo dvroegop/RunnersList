@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace RunnersListLibrary.Spotify.DTO.SpotifyDataObjects;
+namespace RunnersListLibrary.DTO.SpotifyDataObjects;
 
 public class GetTracksResult
 {

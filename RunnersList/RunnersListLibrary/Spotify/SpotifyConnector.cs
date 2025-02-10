@@ -6,8 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 using Microsoft.Extensions.Options;
+using RunnersListLibrary.DTO.SpotifyDataObjects;
 using RunnersListLibrary.Secrets;
-using RunnersListLibrary.Spotify.DTO.SpotifyDataObjects;
 
 namespace RunnersListLibrary.Spotify;
 

@@ -29,6 +29,7 @@ var host = Host.CreateDefaultBuilder(args)
         // Add secrets
         services.Configure<OpenAiSecrets>(context.Configuration.GetSection("OpenAiSecrets"));
         services.Configure<SpotifySecrets>(context.Configuration.GetSection("SpotifySecrets"));
+        services.Configure<SongBpmSecrets>(context.Configuration.GetSection("SongBpmSecrets"));
     })
     .Build();
 

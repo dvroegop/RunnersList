@@ -1,4 +1,4 @@
-﻿namespace RunnersListLibrary.Spotify.DTO;
+﻿namespace RunnersListLibrary.DTO;
 
 public class SpotifyCredentials
 {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RunnersListLibrary.SongBpm;
 using RunnersListLibrary.Spotify;
 
 namespace RunnersListLibrary
@@ -10,6 +11,7 @@ namespace RunnersListLibrary
             // Register your services here
             services.AddTransient<IHelloSayer, HelloSayer>();
             services.AddSingleton<ISpotifyConnector, SpotifyConnector>();
+            services.AddSingleton<ISongBpmConnector, SongBpmConnector>();
         }
     }
 }
