@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RunnersListLibrary.SongBpm;
-using RunnersListLibrary.Spotify;
+using RunnersListLibrary.ServiceProviders.SongBpm;
+using RunnersListLibrary.ServiceProviders.Spotify;
 
 namespace RunnersListLibrary
 {

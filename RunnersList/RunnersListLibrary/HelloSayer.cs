@@ -8,8 +8,8 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using RunnersListLibrary.Secrets;
 using RunnersListLibrary.SemanticFunctions;
-using RunnersListLibrary.SongBpm;
-using RunnersListLibrary.Spotify;
+using RunnersListLibrary.ServiceProviders.SongBpm;
+using RunnersListLibrary.ServiceProviders.Spotify;
 
 namespace RunnersListLibrary;
 
@@ -41,7 +41,7 @@ internal class HelloSayer(
         kernelBuilder.Services.AddSingleton<ISpotifyConnector>(sp => spotifyConnector);
         kernelBuilder.Services.AddSingleton<ISongBpmConnector>(sp => songBpmConnector);
 
-        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
+        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
         kernelBuilder.Plugins.AddFromType<SpotifyFunctions>();
         kernelBuilder.Plugins.AddFromType<SongBpmFunctions>();
         var kernel = kernelBuilder.Build();

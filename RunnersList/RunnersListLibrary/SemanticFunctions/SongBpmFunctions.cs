@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Microsoft.SemanticKernel;
 using RunnersListLibrary.DTO;
-using RunnersListLibrary.SongBpm;
+using RunnersListLibrary.ServiceProviders.SongBpm;
 
 namespace RunnersListLibrary.SemanticFunctions;
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using RunnersListLibrary.DTO.SongBpm;
 using RunnersListLibrary.Secrets;
 
-namespace RunnersListLibrary.SongBpm;
+namespace RunnersListLibrary.ServiceProviders.SongBpm;
 
 internal class SongBpmConnector(
     IHttpClientFactory httpClientFactory,

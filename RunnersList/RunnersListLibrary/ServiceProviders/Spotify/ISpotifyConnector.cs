@@ -1,10 +1,10 @@
 ﻿using RunnersListLibrary.DTO.SpotifyDataObjects;
 
-namespace RunnersListLibrary.Spotify;
+namespace RunnersListLibrary.ServiceProviders.Spotify;
 
 public interface ISpotifyConnector
 {
     Task<string> GetSpotifyTokenAsync();
 
-    Task<GetTracksResult> GetSongAsync(string token);
+    Task<GetTracksResult?> GetSongAsync(string token);
 }

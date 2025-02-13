@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using RunnersListLibrary.DTO;
-using RunnersListLibrary.Spotify;
+using RunnersListLibrary.ServiceProviders.Spotify;
 
 namespace RunnersListLibrary.SemanticFunctions;
 
@@ -34,19 +34,21 @@ public class SpotifyFunctions(ISpotifyConnector spotifyConnector)
 
     [KernelFunction("get_top10_songs_for_genre")]
     [Description("Returns the top 10 songs in a given genre")]
-    public async Task<SpotifySong[]> GetTop10Songs(
+    public async Task<SpotifySong[]?> GetTop10Songs(
         [Description("The favorite genre for this run, ask the user what they want")]
         FavoriteGenres genre)
     {
 
         var songResult = await spotifyConnector.GetSongAsync(_token!);
         var result = new List<SpotifySong>();
+        if (songResult == null)
+            return default;
 
         foreach (var item in songResult.Tracks.Items)
         {
             var artist = item.Artists[0].Name;
             var songName = item.Name;
-            SpotifySong song = new SpotifySong(songName, artist, item.Id);
+            var song = new SpotifySong(songName, artist, item.Id);
             result.Add(song);
         }
 

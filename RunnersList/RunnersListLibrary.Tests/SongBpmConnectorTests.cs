@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using RunnersListLibrary.Secrets;
-using RunnersListLibrary.SongBpm;
+using RunnersListLibrary.ServiceProviders.SongBpm;
 
 namespace RunnersListLibrary.Tests;
 
