@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "RunnerListFunctions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7132",
+      "launchBrowser": false
+    }
+  }
+}
