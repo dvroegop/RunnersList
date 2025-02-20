@@ -1,32 +1,36 @@
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RunnersListLibrary;
+using RunnersListLibrary.Secrets;
 using RunnersListLibrary.ServiceProviders.SongBpm;
 using RunnersListLibrary.ServiceProviders.Spotify;
 
+var builder = FunctionsApplication.CreateBuilder(args);
 
-var host = new HostBuilder()
-    .ConfigureFunctionsWebApplication()
-    .ConfigureServices(services =>
+// Add Azure Key Vault to the configuration
+var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("KEYVAULT_ENDPOINT") ?? throw new InvalidOperationException("Key Vault endpoint is not set"));
+builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+
+builder.ConfigureFunctionsWebApplication();
+
+// Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
+builder.Services
+    .AddApplicationInsightsTelemetryWorkerService()
+    .ConfigureFunctionsApplicationInsights()
+    .AddHttpClient();
+
+// Now, add the IOptions<T> to the services collection
+builder.Services.AddOptions<SpotifySecrets>()
+    .Configure<IConfiguration>((settings, configuration) =>
     {
-        var registrationServices = new RegistrationServices();
-        registrationServices.RegisterServices(services);
-        
-    })
-    .Build();
+        configuration.GetSection("SpotifySettings").Bind(settings);
+    });
 
-await host.RunAsync();
+var registrationServices = new RegistrationServices();
+registrationServices.RegisterServices(builder.Services);
 
-//var builder = FunctionsApplication.CreateBuilder(args);
-
-//builder.ConfigureFunctionsWebApplication();
-
-//// Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
-//builder.Services
-//    .AddApplicationInsightsTelemetryWorkerService()
-//    .ConfigureFunctionsApplicationInsights();
-
-
-//builder.Build().Run();
+builder.Build().Run();

@@ -3,7 +3,9 @@
     "RunnerListFunctions": {
       "commandName": "Project",
       "commandLineArgs": "--port 7132",
-      "launchBrowser": false
+      "environmentVariables": {
+        "KEYVAULT_ENDPOINT": "https://runnerslist-keyvault.vault.azure.net/"
+      }
     }
   }
 }
