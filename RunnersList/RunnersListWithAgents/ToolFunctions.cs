@@ -8,10 +8,10 @@ internal class ToolFunctions
    
     #region FunctionToolDefinitions
 
-    public FunctionToolDefinition _getUserFavoriteCityTool = new("getUserFavoriteCity",
+    public FunctionToolDefinition GetUserFavoriteCityTool = new("getUserFavoriteCityTool",
         "Gets the users favorite city");
 
-    public FunctionToolDefinition _getCityNickNameTool = new("getCityNickName",
+    public FunctionToolDefinition GetCityNickNameTool = new("getCityNickNameTool",
         "Gets the nickname of a city, e.g. 'LA' for Los Angeles, CA.",
         BinaryData.FromObjectAsJson(new
             {
@@ -31,8 +31,8 @@ internal class ToolFunctions
             },
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
 
-    public FunctionToolDefinition _getCurrentWeatherAtLocationTool = new(
-        "getCurrentWeatherAtLocation",
+    public FunctionToolDefinition GetCurrentWeatherAtLocationTool = new(
+        "getCurrentWeatherAtLocationTool",
         "Gets the current weather at a provided location.",
         BinaryData.FromObjectAsJson(
             new

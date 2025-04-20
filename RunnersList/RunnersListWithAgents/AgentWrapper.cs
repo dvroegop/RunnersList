@@ -71,9 +71,9 @@ internal class AgentWrapper
                           + "nicknames for cities whenever possible.",
             tools: new List<ToolDefinition>
             {
-                toolFunctions._getUserFavoriteCityTool, 
-                toolFunctions._getCityNickNameTool, 
-                toolFunctions._getCurrentWeatherAtLocationTool
+                toolFunctions.GetUserFavoriteCityTool, 
+                toolFunctions.GetCityNickNameTool, 
+                toolFunctions.GetCurrentWeatherAtLocationTool
             });
 
         var agent = agentResponse.Value;
@@ -138,16 +138,15 @@ internal class AgentWrapper
             var implementations = new Implementations();
             using var argumentsJson = JsonDocument.Parse(functionToolCall.Arguments);
 
-            if (functionToolCall.Name == toolFunctions._getUserFavoriteCityTool.Name)
-                return new ToolOutput(toolCall, await implementations.GetUserFavoriteCity());
+            if (functionToolCall.Name == toolFunctions.GetUserFavoriteCityTool.Name)
+                return await HandleGetUerFavorityCity(toolCall, implementations);
 
-            if (functionToolCall.Name == toolFunctions._getCityNickNameTool.Name)
+            if (functionToolCall.Name == toolFunctions.GetCityNickNameTool.Name)
             {
-                var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
-                return new ToolOutput(toolCall, implementations.GetCityNickName(locationArgument));
+                return HandleGetCityNickName(toolCall, argumentsJson, implementations);
             }
 
-            if (functionToolCall.Name == toolFunctions._getCurrentWeatherAtLocationTool.Name)
+            if (functionToolCall.Name == toolFunctions.GetCurrentWeatherAtLocationTool.Name)
             {
                 var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
                 if (argumentsJson.RootElement.TryGetProperty("unit", out var unitElement))
@@ -161,5 +160,18 @@ internal class AgentWrapper
         }
 
         return null;
+    }
+
+    private static ToolOutput HandleGetCityNickName(RequiredToolCall toolCall, JsonDocument argumentsJson,
+        Implementations implementations)
+    {
+        var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
+        var result = new ToolOutput(toolCall, implementations.GetCityNickName(locationArgument));
+        return result;
+    }
+
+    private static async Task<ToolOutput> HandleGetUerFavorityCity(RequiredToolCall toolCall, Implementations implementations)
+    {
+        return new ToolOutput(toolCall, await implementations.GetUserFavoriteCity());
     }
 }
