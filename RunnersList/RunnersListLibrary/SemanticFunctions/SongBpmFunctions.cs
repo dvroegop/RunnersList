@@ -17,4 +17,13 @@ public class SongBpmFunctions(ISongBpmConnector songBpmConnector)
 
         return spotifySong;
     }
+
+    [KernelFunction]
+    [Description(
+        "Given a certain bpm value, returns a list of 100 songs that match that tempo.")]
+    public async Task<string> GetSongsWithGivenBpm(int bpm)
+    {
+        var songs = await songBpmConnector.GetSongsWithGivenBpmAsync(bpm);
+        return songs;
+    }
 }

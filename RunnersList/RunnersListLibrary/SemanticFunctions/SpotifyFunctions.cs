@@ -32,14 +32,14 @@ public class SpotifyFunctions(ISpotifyConnector spotifyConnector)
         return _token;
     }
 
-    [KernelFunction("get_top10_songs_for_genre")]
-    [Description("Returns the top 10 songs in a given genre")]
-    public async Task<SpotifySong[]?> GetTop10Songs(
+    [KernelFunction("get_top50_songs_for_genre")]
+    [Description("Returns the top 50 songs in a given genre")]
+    public async Task<SpotifySong[]?> GetTop50Songs(
         [Description("The favorite genre for this run, ask the user what they want")]
         FavoriteGenres genre)
     {
 
-        var songResult = await spotifyConnector.GetSongAsync(_token!);
+        var songResult = await spotifyConnector.GetSongsAsync(_token!);
         var result = new List<SpotifySong>();
         if (songResult == null)
             return default;

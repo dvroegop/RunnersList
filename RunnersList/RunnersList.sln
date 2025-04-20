@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnersListLibrary.Tests", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{6153731F-B681-4CAF-A584-E55ED1891F35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnerListFunctions", "RunnerListFunctions\RunnerListFunctions.csproj", "{FEAE2C04-6E7E-46B7-8B73-C502E9D9F679}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnersListWithAgents", "RunnersListWithAgents\RunnersListWithAgents.csproj", "{32CCEB08-3179-4248-B12B-6FC63BC52D83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,16 +31,13 @@ Global
 		{E2708454-B701-4D29-A117-335E283480E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2708454-B701-4D29-A117-335E283480E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2708454-B701-4D29-A117-335E283480E6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FEAE2C04-6E7E-46B7-8B73-C502E9D9F679}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FEAE2C04-6E7E-46B7-8B73-C502E9D9F679}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FEAE2C04-6E7E-46B7-8B73-C502E9D9F679}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FEAE2C04-6E7E-46B7-8B73-C502E9D9F679}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{FEAE2C04-6E7E-46B7-8B73-C502E9D9F679} = {6153731F-B681-4CAF-A584-E55ED1891F35}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {611B8C8C-BF67-4A4F-BADF-2B3598C5374E}

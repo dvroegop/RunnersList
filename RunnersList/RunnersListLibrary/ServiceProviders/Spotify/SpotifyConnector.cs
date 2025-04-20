@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Web;
 using Microsoft.Extensions.Options;
+using RunnersListLibrary.DTO;
 using RunnersListLibrary.DTO.SpotifyDataObjects;
 using RunnersListLibrary.Secrets;
 
@@ -80,16 +81,21 @@ internal class SpotifyConnector(
     }
 
 
-    public async Task<GetTracksResult?> GetSongAsync(string token)
+    public async Task<GetTracksResult?> GetSongsAsync(string token)
     {
         var httpClient = httpClientFactory.CreateClient("SpotifyClient");
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        var response = await httpClient.GetAsync("https://api.spotify.com/v1/search?q=genre%3Arock&type=track");
+        var response = await httpClient.GetAsync("https://api.spotify.com/v1/search?q=genre%3Arock&type=track&limit=50");
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<GetTracksResult>(content);
         return data;
+    }
+
+    public Task<string> CreatePlaylistAsync(string token, string playlistName, string description, IEnumerable<SpotifySong> songs)
+    {
+        throw new NotImplementedException();
     }
 
 

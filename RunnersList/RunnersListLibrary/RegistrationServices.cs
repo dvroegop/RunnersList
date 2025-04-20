@@ -9,7 +9,7 @@ namespace RunnersListLibrary
         public void RegisterServices(IServiceCollection services)
         {
             // Register your services here
-            services.AddTransient<IHelloSayer, HelloSayer>();
+            services.AddTransient<IKickstarter, Kickstarter>();
             services.AddSingleton<ISpotifyConnector, SpotifyConnector>();
             services.AddSingleton<ISongBpmConnector, SongBpmConnector>();   
         }

@@ -9,6 +9,7 @@ internal class SongBpmConnector(
     IHttpClientFactory httpClientFactory,
     IOptions<SongBpmSecrets> songBpmSecrets) : ISongBpmConnector
 {
+
     public async Task<int> GetSongBpmAsync(string artist, string title)
     {
         var client = httpClientFactory.CreateClient();
@@ -41,9 +42,18 @@ internal class SongBpmConnector(
         
     }
 
-}
+    public async Task<string> GetSongsWithGivenBpmAsync(int bpm)
+    {
+        var apiKey = songBpmSecrets.Value.ApiKey;
 
-public interface ISongBpmConnector
-{   
-    Task<int> GetSongBpmAsync(string artist, string title);
+
+        var client = httpClientFactory.CreateClient();
+        var baseUrl = $"https://api.getsong.co/tempo/?api_key={apiKey}&bpm={bpm}&limit=100";
+        var response = await client.GetAsync(baseUrl);
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        return content;
+
+    }
+
 }

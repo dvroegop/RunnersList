@@ -2,14 +2,16 @@
 
 namespace RunnersList;
 
-public class RunnerService(IHelloSayer helloSayer) : IRunnerService
+public class RunnerService(IKickstarter kickStarter) : IRunnerService
 {
     #region
 
     public async Task Run()
     {
         Console.WriteLine("RunnerService is running...");
-        await helloSayer.SayHello();
+        await kickStarter.TestApi();
+
+       // await kickStarter.StartAsync();
     }
 
     #endregion
