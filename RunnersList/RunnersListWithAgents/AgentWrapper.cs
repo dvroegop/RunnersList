@@ -71,9 +71,9 @@ internal class AgentWrapper
                           + "nicknames for cities whenever possible.",
             tools: new List<ToolDefinition>
             {
-                toolFunctions.getUserFavoriteCityTool, 
-                toolFunctions.getCityNickNameTool, 
-                toolFunctions.getCurrentWeatherAtLocationTool
+                toolFunctions._getUserFavoriteCityTool, 
+                toolFunctions._getCityNickNameTool, 
+                toolFunctions._getCurrentWeatherAtLocationTool
             });
 
         var agent = agentResponse.Value;
@@ -97,9 +97,14 @@ internal class AgentWrapper
             {
                 List<ToolOutput> toolOutputs = new();
                 foreach (var toolCall in submitToolOutputsAction.ToolCalls)
-                    toolOutputs.Add(GetResolvedToolOutput(toolCall));
+                    toolOutputs.Add(await GetResolvedToolOutput(toolCall));
                 runResponse = await client.SubmitToolOutputsToRunAsync(runResponse.Value, toolOutputs);
             }
+
+            var oldColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"Current Status: {runResponse.Value.Status}");
+            Console.ForegroundColor = oldColor;
 
 
         } while (runResponse.Value.Status == RunStatus.Queued
@@ -124,32 +129,34 @@ internal class AgentWrapper
         }
     }
 
-    private ToolOutput GetResolvedToolOutput(RequiredToolCall toolCall)
+    private async Task<ToolOutput> GetResolvedToolOutput(RequiredToolCall toolCall)
     {
 
         if (toolCall is RequiredFunctionToolCall functionToolCall)
         {
+
+            var implementations = new Implementations();
             using var argumentsJson = JsonDocument.Parse(functionToolCall.Arguments);
 
-            if (functionToolCall.Name == toolFunctions.getUserFavoriteCityTool.Name)
-                return new ToolOutput(toolCall, toolFunctions.GetUserFavoriteCity());
+            if (functionToolCall.Name == toolFunctions._getUserFavoriteCityTool.Name)
+                return new ToolOutput(toolCall, await implementations.GetUserFavoriteCity());
 
-            if (functionToolCall.Name == toolFunctions.getCityNickNameTool.Name)
+            if (functionToolCall.Name == toolFunctions._getCityNickNameTool.Name)
             {
                 var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
-                return new ToolOutput(toolCall, toolFunctions.GetCityNickName(locationArgument));
+                return new ToolOutput(toolCall, implementations.GetCityNickName(locationArgument));
             }
 
-            if (functionToolCall.Name == toolFunctions.getCurrentWeatherAtLocationTool.Name)
+            if (functionToolCall.Name == toolFunctions._getCurrentWeatherAtLocationTool.Name)
             {
                 var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
                 if (argumentsJson.RootElement.TryGetProperty("unit", out var unitElement))
                 {
                     var unitArgument = unitElement.GetString();
-                    return new ToolOutput(toolCall, toolFunctions.GetWeather(locationArgument, unitArgument));
+                    return new ToolOutput(toolCall, implementations.GetWeather(locationArgument, unitArgument));
                 }
 
-                return new ToolOutput(toolCall, toolFunctions.GetWeather(locationArgument));
+                return new ToolOutput(toolCall, implementations.GetWeather(locationArgument));
             }
         }
 
