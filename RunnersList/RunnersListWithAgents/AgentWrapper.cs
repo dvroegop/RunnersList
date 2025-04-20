@@ -18,6 +18,52 @@ internal class AgentWrapper
 
         var client = aiProjectClient.GetAgentsClient();
 
+        var agent = await CreateAgent(client, modelName);
+        try
+        {
+
+            Response<AgentThread> threadResponse = await aiProjectClient.GetAgentsClient().CreateThreadAsync();
+            var thread = threadResponse.Value;
+            try
+            {
+
+                Response<ThreadMessage> messageResponse = await client.CreateMessageAsync(
+                    thread.Id,
+                    content: "What is the weather in my favority city?",
+                    role: MessageRole.User);
+
+                var message = messageResponse.Value;
+
+                Response<ThreadRun> runResponse = await client.CreateRunAsync(thread, agent);
+
+                await HandleThread(runResponse, client, thread);
+
+
+                Response<PageableList<ThreadMessage>>
+                    afterRunMessageResponse = await client.GetMessagesAsync(thread.Id);
+
+                var messages = afterRunMessageResponse.Value.Data;
+
+                DisplayResults(messages);
+
+            }
+            finally
+            {
+
+                // Delete the agent
+                await client.DeleteThreadAsync(thread.Id);
+            }
+        }
+        finally
+        {
+
+            await client.DeleteAgentAsync(agent.Id);
+        }
+
+    }
+
+    private async Task<Agent> CreateAgent(AgentsClient client, string modelName)
+    {
         var agentResponse = await client.CreateAgentAsync(modelName,
             "TestAgentClient",
             instructions: "You are a weather bot. Use the provided functions to help answer questions. "
@@ -31,20 +77,11 @@ internal class AgentWrapper
             });
 
         var agent = agentResponse.Value;
+        return agent;
+    }
 
-
-        Response<AgentThread> threadResponse = await aiProjectClient.GetAgentsClient().CreateThreadAsync();
-        var thread = threadResponse.Value;
-
-        Response<ThreadMessage> messageResponse = await client.CreateMessageAsync(
-            thread.Id,
-            content: "What is the weather in my favority city?",
-            role: MessageRole.User);
-
-        var message = messageResponse.Value;
-
-        Response<ThreadRun> runResponse = await client.CreateRunAsync(thread, agent);
-
+    private async Task HandleThread(Response<ThreadRun> runResponse, AgentsClient client, AgentThread thread)
+    {
         do
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500));
@@ -67,14 +104,13 @@ internal class AgentWrapper
 
         } while (runResponse.Value.Status == RunStatus.Queued
                  || runResponse.Value.Status == RunStatus.InProgress);
+    }
 
-
-        Response<PageableList<ThreadMessage>> afterRunMessageResponse = await client.GetMessagesAsync(thread.Id);
-
-        var messages = afterRunMessageResponse.Value.Data;
-
-        foreach (var threadMessage in messages)
+    private static void DisplayResults(IReadOnlyList<ThreadMessage> messages)
+    {
+        for (int i = messages.Count - 1; i >= 0; i--)
         {
+            var threadMessage = messages[i];
             Console.Write($"{threadMessage.CreatedAt:yyyy-MM-dd HH:mm:ss} - {threadMessage.Role,10}: ");
             foreach (var contentItem in threadMessage.ContentItems)
             {
@@ -86,21 +122,18 @@ internal class AgentWrapper
                 Console.WriteLine();
             }
         }
-
-        // Delete the agent
-        await client.DeleteThreadAsync(thread.Id);
-        await client.DeleteAgentAsync(agent.Id);
-
-        Console.WriteLine("At the end");
     }
 
     private ToolOutput GetResolvedToolOutput(RequiredToolCall toolCall)
     {
+
         if (toolCall is RequiredFunctionToolCall functionToolCall)
         {
+            using var argumentsJson = JsonDocument.Parse(functionToolCall.Arguments);
+
             if (functionToolCall.Name == toolFunctions.getUserFavoriteCityTool.Name)
                 return new ToolOutput(toolCall, toolFunctions.GetUserFavoriteCity());
-            using var argumentsJson = JsonDocument.Parse(functionToolCall.Arguments);
+
             if (functionToolCall.Name == toolFunctions.getCityNickNameTool.Name)
             {
                 var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
@@ -113,7 +146,7 @@ internal class AgentWrapper
                 if (argumentsJson.RootElement.TryGetProperty("unit", out var unitElement))
                 {
                     var unitArgument = unitElement.GetString();
-                    return new ToolOutput(toolCall, toolFunctions.GetWeather(locationArgument));
+                    return new ToolOutput(toolCall, toolFunctions.GetWeather(locationArgument, unitArgument));
                 }
 
                 return new ToolOutput(toolCall, toolFunctions.GetWeather(locationArgument));

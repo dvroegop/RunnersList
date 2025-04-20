@@ -59,7 +59,7 @@ internal class ToolFunctions
 
     public string GetUserFavoriteCity()
     {
-        return "Seattle";
+        return "Amsterdam";
     }
 
     public string GetCityNickName(string location)
@@ -84,6 +84,18 @@ internal class ToolFunctions
             "London" => "15",
             "Seattle" => "18",
             _ => "0"
+        };
+    }
+
+    public string GetWeather(string city, string unit)
+    {
+        return city switch
+        {
+            "Amsterdam" => unit == "c" ? "20" : "68",
+            "Paris" => unit == "c" ? "25" : "77",
+            "London" => unit == "c" ? "15" : "59",
+            "Seattle" => unit == "c" ? "18" : "64",
+            _ => unit == "c" ? "0" : "32"
         };
     }
 };
