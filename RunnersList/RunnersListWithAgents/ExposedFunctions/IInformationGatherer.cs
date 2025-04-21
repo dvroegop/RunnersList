@@ -1,4 +1,4 @@
-﻿namespace RunnersListWithAgents;
+﻿namespace RunnersListWithAgents.ExposedFunctions;
 
 public interface IInformationGatherer
 {

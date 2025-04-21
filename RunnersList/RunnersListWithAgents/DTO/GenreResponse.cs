@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace RunnersListWithAgents;
+namespace RunnersListWithAgents.DTO;
 
 internal class GenreResponse
 {

@@ -2,16 +2,14 @@
 using RunnersListLibrary.ServiceProviders.SongBpm;
 using RunnersListLibrary.ServiceProviders.Spotify;
 
-namespace RunnersListLibrary
+namespace RunnersListLibrary;
+
+public class RegistrationServices
 {
-    public class RegistrationServices
+    public void RegisterServices(IServiceCollection services)
     {
-        public void RegisterServices(IServiceCollection services)
-        {
-            // Register your services here
-            services.AddTransient<IKickstarter, Kickstarter>();
-            services.AddSingleton<ISpotifyConnector, SpotifyConnector>();
-            services.AddSingleton<ISongBpmConnector, SongBpmConnector>();   
-        }
+        // Register your services here
+        services.AddSingleton<ISpotifyConnector, SpotifyConnector>();
+        services.AddSingleton<ISongBpmConnector, SongBpmConnector>();
     }
 }

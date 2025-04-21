@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RunnersListLibrary.Secrets;
 using RunnersListLibrary.ServiceProviders.Spotify;
+using RunnersListWithAgents.ExposedFunctions;
+using RunnersListWithAgents.ToolFunctions;
 
 namespace RunnersListWithAgents;
 
@@ -16,7 +18,6 @@ internal class AgentWrapper(
     IInformationGatherer informationGatherer
     ) : IAgentWrapper
 {
-    private readonly ToolFunctions _toolFunctions= new();
     private readonly SpotifyToolFunctions _spotifyToolFunctions = new();
     private readonly InformationGathererFunctions _informationGathererFunctions = new();
 
@@ -40,7 +41,7 @@ internal class AgentWrapper(
 
                 Response<ThreadMessage> messageResponse = await client.CreateMessageAsync(
                     thread.Id,
-                    content: "What is the weather in my favority city?",
+                    content: "Can you create me the ultimate running music playlist?",
                     role: MessageRole.User);
 
                 var message = messageResponse.Value;
@@ -77,16 +78,19 @@ internal class AgentWrapper(
     {
         var agentResponse = await client.CreateAgentAsync(modelName,
             "TestAgentClient",
-            instructions: "You are a weather bot. Use the provided functions to help answer questions. "
-                          + "Customize your responses to the user's preferences as much as possible and use friendly "
-                          + "nicknames for cities whenever possible." 
-                          + "You always start with getting users favorite music genre.",
+            instructions: @"
+You are a knowledgeable assistant that helps the user create a Spotify playlist tailored for their running workout. 
+Follow the steps below precisely. 
+Always maintain state and pass tokens where needed.
+First, we need to get the users favorite genre. Then, we need to get a token so we
+can communicate with Spotify. 
+Then, we need to get the top 50 songs in that genre. 
+Then we display those songs to the user.
+",
             tools: new List<ToolDefinition>
             {
-                _toolFunctions.GetUserFavoriteCityTool, 
-                _toolFunctions.GetCityNickNameTool, 
-                _toolFunctions.GetCurrentWeatherAtLocationTool,
                 _spotifyToolFunctions.GetSpotifyTokenTool,
+                _spotifyToolFunctions.GetTop50SongsForGenreTool,
                 _informationGathererFunctions.GetUserFavoriteMusicGenreTool
             });
 
@@ -148,12 +152,11 @@ internal class AgentWrapper(
 
         if (toolCall is RequiredFunctionToolCall functionToolCall)
         {
-
-            var implementations = new Implementations();
             using var argumentsJson = JsonDocument.Parse(functionToolCall.Arguments);
 
             if (functionToolCall.Name == _informationGathererFunctions.GetUserFavoriteMusicGenreTool.Name)
             {
+                //return new ToolOutput(toolCall, "rock");
                 return new ToolOutput(toolCall, await informationGatherer.GetFavoriteMusicGenre());
             }
 
@@ -162,40 +165,15 @@ internal class AgentWrapper(
                 return new ToolOutput(toolCall, await spotifyConnector.GetSpotifyTokenAsync());
             }
 
-            //if (functionToolCall.Name == _toolFunctions.GetUserFavoriteCityTool.Name)
-            //    return new ToolOutput(toolCall, await implementations.AskUserForFavoriteCity());  //HandleGetUerFavorityCity(toolCall, implementations);
-
-            if (functionToolCall.Name == _toolFunctions.GetCityNickNameTool.Name)
+            if (functionToolCall.Name == _spotifyToolFunctions.GetTop50SongsForGenreTool.Name)
             {
-                return HandleGetCityNickName(toolCall, argumentsJson, implementations);
-            }
+                var tokenArgument = argumentsJson.RootElement.GetProperty("token").GetString();
+                var genreArgument = argumentsJson.RootElement.GetProperty("genre").GetString();
+                return new ToolOutput(toolCall, await spotifyConnector.GetSongsAsync(tokenArgument ?? throw new InvalidOperationException(), genreArgument ?? throw new InvalidOperationException()));
 
-            if (functionToolCall.Name == _toolFunctions.GetCurrentWeatherAtLocationTool.Name)
-            {
-                var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
-                if (argumentsJson.RootElement.TryGetProperty("unit", out var unitElement))
-                {
-                    var unitArgument = unitElement.GetString();
-                    return new ToolOutput(toolCall, implementations.GetWeather(locationArgument, unitArgument));
-                }
-
-                return new ToolOutput(toolCall, implementations.GetWeather(locationArgument));
             }
         }
 
         return null;
-    }
-
-    private static ToolOutput HandleGetCityNickName(RequiredToolCall toolCall, JsonDocument argumentsJson,
-        Implementations implementations)
-    {
-        var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
-        var result = new ToolOutput(toolCall, implementations.GetCityNickName(locationArgument));
-        return result;
-    }
-
-    private static async Task<ToolOutput> HandleGetUerFavorityCity(RequiredToolCall toolCall, Implementations implementations)
-    {
-        return new ToolOutput(toolCall, await implementations.GetUserFavoriteCity());
     }
 }
