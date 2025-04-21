@@ -57,3 +57,52 @@ internal class ToolFunctions
 
     #endregion
 }
+
+internal class SpotifyToolFunctions
+{
+    public FunctionToolDefinition GetSpotifyTokenTool = new("getSpotifyTokenTool",
+        "Gets the Spotify token",
+        BinaryData.FromObjectAsJson(
+            new
+            {
+                Type= "object",
+                Properties = new
+                {
+                    ClientId = new
+                    {
+                        Type = "string",
+                        Description = "The Spotify client id"
+                    },
+                    ClientSecret = new
+                    {
+                        Type = "string",
+                        Description = "The Spotify client secret"
+                    },
+                    RedirectUrl = new
+                    {
+                        Type = "string",
+                        Description = "The Spotify redirect url"
+                    }
+                },
+                Required = new[]
+                {
+                    "ClientId",
+                    "ClientSecret",
+                    "RedirectUrl"
+                }
+            },
+            new JsonSerializerOptions{PropertyNamingPolicy = JsonNamingPolicy.CamelCase}
+            ));
+}
+
+internal class SongBpmToolFunctions
+{
+
+}
+
+internal class InformationGathererFunctions
+{
+    public FunctionToolDefinition GetUserFavoriteMusicGenreTool= new("getUserFavoriteMusicGenre",
+        "Gets the users favorite music genre");
+
+}

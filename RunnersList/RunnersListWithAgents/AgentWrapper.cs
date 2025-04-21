@@ -2,18 +2,29 @@
 using Azure;
 using Azure.AI.Projects;
 using Azure.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RunnersListLibrary.Secrets;
+using RunnersListLibrary.ServiceProviders.Spotify;
 
 namespace RunnersListWithAgents;
 
-internal class AgentWrapper
+internal class AgentWrapper(
+    ILogger<AgentWrapper> logger, 
+    IOptions<OpenAiSecrets> openAiSecrets,
+    ISpotifyConnector spotifyConnector,
+    IInformationGatherer informationGatherer
+    ) : IAgentWrapper
 {
-    private ToolFunctions toolFunctions= new();
+    private readonly ToolFunctions _toolFunctions= new();
+    private readonly SpotifyToolFunctions _spotifyToolFunctions = new();
+    private readonly InformationGathererFunctions _informationGathererFunctions = new();
 
     public async Task RunAgent()
     {
-        var modelName = "gpt-4o";
-        var connectionString =
-            "swedencentral.api.azureml.ms;279d1d3a-3490-47dd-85e5-ee752ad3da9d;rg-dvroegop-6520_ai;testprojectforlearning";
+        var modelName = openAiSecrets.Value.DeploymentName;
+        var connectionString = openAiSecrets.Value.AiFoundryConnectionString;
+        
         var aiProjectClient = new AIProjectClient(connectionString, new DefaultAzureCredential());
 
         var client = aiProjectClient.GetAgentsClient();
@@ -68,12 +79,15 @@ internal class AgentWrapper
             "TestAgentClient",
             instructions: "You are a weather bot. Use the provided functions to help answer questions. "
                           + "Customize your responses to the user's preferences as much as possible and use friendly "
-                          + "nicknames for cities whenever possible.",
+                          + "nicknames for cities whenever possible." 
+                          + "You always start with getting users favorite music genre.",
             tools: new List<ToolDefinition>
             {
-                toolFunctions.GetUserFavoriteCityTool, 
-                toolFunctions.GetCityNickNameTool, 
-                toolFunctions.GetCurrentWeatherAtLocationTool
+                _toolFunctions.GetUserFavoriteCityTool, 
+                _toolFunctions.GetCityNickNameTool, 
+                _toolFunctions.GetCurrentWeatherAtLocationTool,
+                _spotifyToolFunctions.GetSpotifyTokenTool,
+                _informationGathererFunctions.GetUserFavoriteMusicGenreTool
             });
 
         var agent = agentResponse.Value;
@@ -138,15 +152,25 @@ internal class AgentWrapper
             var implementations = new Implementations();
             using var argumentsJson = JsonDocument.Parse(functionToolCall.Arguments);
 
-            if (functionToolCall.Name == toolFunctions.GetUserFavoriteCityTool.Name)
-                return await HandleGetUerFavorityCity(toolCall, implementations);
+            if (functionToolCall.Name == _informationGathererFunctions.GetUserFavoriteMusicGenreTool.Name)
+            {
+                return new ToolOutput(toolCall, await informationGatherer.GetFavoriteMusicGenre());
+            }
 
-            if (functionToolCall.Name == toolFunctions.GetCityNickNameTool.Name)
+            if (functionToolCall.Name == _spotifyToolFunctions.GetSpotifyTokenTool.Name)
+            {
+                return new ToolOutput(toolCall, await spotifyConnector.GetSpotifyTokenAsync());
+            }
+
+            //if (functionToolCall.Name == _toolFunctions.GetUserFavoriteCityTool.Name)
+            //    return new ToolOutput(toolCall, await implementations.AskUserForFavoriteCity());  //HandleGetUerFavorityCity(toolCall, implementations);
+
+            if (functionToolCall.Name == _toolFunctions.GetCityNickNameTool.Name)
             {
                 return HandleGetCityNickName(toolCall, argumentsJson, implementations);
             }
 
-            if (functionToolCall.Name == toolFunctions.GetCurrentWeatherAtLocationTool.Name)
+            if (functionToolCall.Name == _toolFunctions.GetCurrentWeatherAtLocationTool.Name)
             {
                 var locationArgument = argumentsJson.RootElement.GetProperty("location").GetString();
                 if (argumentsJson.RootElement.TryGetProperty("unit", out var unitElement))
