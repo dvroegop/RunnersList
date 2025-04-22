@@ -8,7 +8,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using RunnersListLibrary.Secrets;
 using RunnersListWithAgents.DTO;
-using RunnersListWithAgents.ExposedFunctions;
 
 namespace RunnersListLibrary.GenericFunctions;
 
@@ -16,7 +15,106 @@ internal class InformationGatherer(
     ILogger<InformationGatherer> logger,
     IOptions<OpenAiSecrets> openAiSecrets) : IInformationGatherer
 {
+    /// <summary>
+    /// Asynchronously determines the user's favorite music genre by interacting with a chat-based AI assistant.
+    /// The assistant helps the user refine their choice until a valid genre is selected.
+    /// </summary>
+    /// <returns>
+    /// A string representing the user's favorite music genre. The result is one of the predefined genres:
+    /// "rock", "pop", "eighties", or "electronic".
+    /// </returns>
     public async Task<string> GetFavoriteMusicGenre()
+    {
+        var kernel = SetupKernel(out var chatCompletionService);
+
+        var history = SetupStartPrompts();
+
+        var finalAnswer = string.Empty;
+        var canContinue = true;
+
+        while (canContinue)
+        {
+            var responseBuilder = new StringBuilder();
+
+            // Stream responses from the chat completion service
+            await foreach (var response in chatCompletionService.GetStreamingChatMessageContentsAsync(
+                               history,
+                               new PromptExecutionSettings(),
+                               kernel))
+            {
+                var content = response.Content;
+                if (string.IsNullOrWhiteSpace(content)) continue;
+
+                Console.Write(content);
+                responseBuilder.Append(content);
+            }
+
+            var responseFromAssistant = responseBuilder.ToString();
+            history.AddAssistantMessage(responseFromAssistant);
+
+            // Check if the assistant has completed the process
+            if (responseFromAssistant.Contains("completed", StringComparison.InvariantCultureIgnoreCase))
+            {
+                finalAnswer = ExtractGenre(responseFromAssistant);
+                canContinue = false;
+            }
+            else
+            {
+                // Prompt the user for additional input if the process is not complete
+                Console.Write(" > ");
+                var responseFromUser = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(responseFromUser))
+                    history.AddUserMessage(responseFromUser);
+                else
+                    Console.WriteLine("Please provide a valid input.");
+            }
+        }
+
+        return finalAnswer;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="responseFromAssistant"></param>
+    /// <returns></returns>
+    private static string ExtractGenre(string responseFromAssistant)
+    {
+        string finalAnswer = string.Empty;
+        var result = responseFromAssistant;
+        try
+        {
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
+            };
+
+            var genreResponse = JsonSerializer.Deserialize<GenreResponse>(result, options);
+            finalAnswer = genreResponse?.Genre ?? string.Empty;
+        }
+        catch (JsonException)
+        {
+            // Attempt to extract genre name using regex as a fallback
+            var regex = new Regex(@"['""]genre['""]\s*:\s*['""]([^'""]+)['""]");
+            var match = regex.Match(result);
+            if (match.Success)
+                finalAnswer = match.Groups[1].Value;
+            else
+                Console.WriteLine("Could not find the genre name in the response. Please try again.");
+        }
+
+        return finalAnswer;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="chatCompletionService"></param>
+    /// <returns></returns>
+    private Kernel SetupKernel(out IChatCompletionService chatCompletionService)
     {
         var deploymentName = openAiSecrets.Value.DeploymentName;
         var apiKey = openAiSecrets.Value.ApiKey;
@@ -29,11 +127,19 @@ internal class InformationGatherer(
             endPoint,
             apiKey);
 
-        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
+        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
         var kernel = kernelBuilder.Build();
 
-        var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+        chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+        return kernel;
+    }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    private static ChatHistory SetupStartPrompts()
+    {
         var systemPrompt = @"
 You are a music genre expert. Please ask the user about their favorite genre. 
 If they are not clear, please ask and help them refine until they got it.
@@ -54,73 +160,6 @@ The JSON looks like this:
         var history = new ChatHistory();
         history.AddSystemMessage(systemPrompt);
         history.AddUserMessage("Help me find my favorite music genre");
-
-        var finalAnswer = string.Empty;
-        var canContinue = true;
-
-        while (canContinue)
-        {
-            var responseBuilder = new StringBuilder();
-
-            await foreach (var response in chatCompletionService.GetStreamingChatMessageContentsAsync(
-                               history,
-                               new PromptExecutionSettings(),
-                               kernel))
-            {
-                var content = response.Content;
-                if (!string.IsNullOrWhiteSpace(content))
-                {
-                    Console.Write(content);
-                    responseBuilder.Append(content);
-
-                    if (content.Contains("\n"))
-                        Console.WriteLine(Environment.NewLine);
-                }
-            }
-
-            var responseFromAssistant = responseBuilder.ToString();
-            history.AddAssistantMessage(responseFromAssistant);
-
-            if (responseFromAssistant.Contains("completed", StringComparison.InvariantCultureIgnoreCase))
-            {
-                var result = responseFromAssistant;
-                try
-                {
-                    var options = new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                        WriteIndented = true,
-                        AllowTrailingCommas = true,
-                        ReadCommentHandling = JsonCommentHandling.Skip
-                    };
-
-                    var genreResponse = JsonSerializer.Deserialize<GenreResponse>(result, options);
-                    finalAnswer = genreResponse?.Genre ?? string.Empty;
-                }
-                catch (JsonException)
-                {
-                    // Attempt to extract genre name using regex as a fallback
-                    var regex = new Regex(@"['""]genre['""]\s*:\s*['""]([^'""]+)['""]");
-                    var match = regex.Match(result);
-                    if (match.Success)
-                        finalAnswer = match.Groups[1].Value;
-                    else
-                        Console.WriteLine("Could not find the genre name in the response. Please try again.");
-                }
-
-                canContinue = false;
-            }
-            else
-            {
-                Console.Write(" > ");
-                var responseFromUser = Console.ReadLine();
-                if (!string.IsNullOrWhiteSpace(responseFromUser))
-                    history.AddUserMessage(responseFromUser);
-                else
-                    Console.WriteLine("Please provide a valid input.");
-            }
-        }
-
-        return finalAnswer;
+        return history;
     }
 }

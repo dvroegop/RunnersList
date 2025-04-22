@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using Microsoft.SemanticKernel;
-using RunnersListWithAgents.ExposedFunctions;
+using RunnersListLibrary.GenericFunctions;
 
 namespace RunnersList.SemanticFunctions;
 

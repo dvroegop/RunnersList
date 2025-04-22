@@ -9,7 +9,21 @@ internal class SongBpmConnector(
     IHttpClientFactory httpClientFactory,
     IOptions<SongBpmSecrets> songBpmSecrets) : ISongBpmConnector
 {
-
+    /// <summary>
+    /// Retrieves the beats per minute (BPM) of a song based on the provided artist and title.
+    /// </summary>
+    /// <param name="artist">The name of the artist of the song.</param>
+    /// <param name="title">The title of the song.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the BPM of the song as an integer.
+    /// Returns -1 if the BPM cannot be determined.
+    /// </returns>
+    /// <exception cref="HttpRequestException">
+    /// Thrown when the HTTP request to the SongBPM API fails.
+    /// </exception>
+    /// <exception cref="System.Text.Json.JsonException">
+    /// Thrown when the response from the SongBPM API cannot be parsed.
+    /// </exception>
     public async Task<int> GetSongBpmAsync(string artist, string title)
     {
         var client = httpClientFactory.CreateClient();
@@ -42,6 +56,20 @@ internal class SongBpmConnector(
         
     }
 
+    /// <summary>
+    /// Retrieves a list of songs that match the specified beats per minute (BPM).
+    /// </summary>
+    /// <param name="bpm">The beats per minute (BPM) to filter songs by.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains a JSON string
+    /// with the list of songs matching the specified BPM.
+    /// </returns>
+    /// <exception cref="HttpRequestException">
+    /// Thrown when the HTTP request to the external API fails or returns a non-success status code.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when the API key required for the request is null or empty.
+    /// </exception>
     public async Task<string> GetSongsWithGivenBpmAsync(int bpm)
     {
         var apiKey = songBpmSecrets.Value.ApiKey;

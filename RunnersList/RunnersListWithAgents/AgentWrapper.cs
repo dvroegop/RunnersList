@@ -5,9 +5,9 @@ using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RunnersListLibrary.DTO.SpotifyDataObjects;
+using RunnersListLibrary.GenericFunctions;
 using RunnersListLibrary.Secrets;
 using RunnersListLibrary.ServiceProviders.Spotify;
-using RunnersListWithAgents.ExposedFunctions;
 using RunnersListWithAgents.ToolFunctions;
 
 namespace RunnersListWithAgents;

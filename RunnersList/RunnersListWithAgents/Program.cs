@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using RunnersListLibrary;
 using RunnersListLibrary.Secrets;
 using RunnersListWithAgents;
-using RunnersListWithAgents.ExposedFunctions;
 
 Console.WriteLine("Starting the agent.");
 

@@ -5,10 +5,8 @@ using System.Text;
 using System.Text.Json;
 using System.Web;
 using Microsoft.Extensions.Options;
-using RunnersListLibrary.DTO;
 using RunnersListLibrary.DTO.SpotifyDataObjects;
 using RunnersListLibrary.Secrets;
-using RunnersListLibrary.ServiceProviders.SongBpm;
 
 namespace RunnersListLibrary.ServiceProviders.Spotify;
 
@@ -18,6 +16,24 @@ internal class SpotifyConnector(
     IOptions<SpotifySecrets> spotifySecrets)
     : ISpotifyConnector
 {
+    
+    /// <summary>
+    /// Initiates the Spotify authorization process to retrieve an access token.
+    /// </summary>
+    /// <remarks>
+    /// This method launches a browser to authenticate the user with Spotify and listens for the redirect 
+    /// containing the authorization code. It then exchanges the authorization code for an access token.
+    /// </remarks>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> representing the asynchronous operation, with a result of the Spotify access token as a <see cref="string"/>.
+    /// </returns>
+    /// <exception cref="Exception">
+    /// Thrown when a valid request cannot be retrieved or other unexpected errors occur during the process.
+    /// </exception>
+    /// <exception cref="SpotifyException">
+    /// Thrown when there is an error during Spotify authorization, such as missing or invalid state, 
+    /// missing authorization code, or failure to retrieve the access token.
+    /// </exception>
     public async Task<string> GetSpotifyTokenAsync()
     {
         var client = httpClientFactory.CreateClient("SpotifyClient");
@@ -81,7 +97,22 @@ internal class SpotifyConnector(
         return accessToken;
     }
 
-
+    
+    /// <summary>
+    /// Retrieves a collection of songs from Spotify based on the specified genre.
+    /// </summary>
+    /// <param name="token">
+    /// The Spotify access token used for authentication.
+    /// </param>
+    /// <param name="genre">
+    /// The genre of songs to search for.
+    /// </param>
+    /// <returns>
+    /// A collection of <see cref="CondensedSpotifySong"/> objects representing the retrieved songs.
+    /// </returns>
+    /// <exception cref="SpotifyException">
+    /// Thrown when no songs are found or an error occurs during the request.
+    /// </exception>
     public async Task<IEnumerable<CondensedSpotifySong>> GetSongsAsync(string token, string genre)
     {
         var httpClient = httpClientFactory.CreateClient("SpotifyClient");
@@ -98,7 +129,7 @@ internal class SpotifyConnector(
         var data = JsonSerializer.Deserialize<GetTracksResult>(content);
         if (data == null)
             throw new SpotifyException("Cannot find any song.");
-        
+
         foreach (var song in data.Tracks.Items)
         {
             var condensedSong = ConvertSongToCondensed(song);
