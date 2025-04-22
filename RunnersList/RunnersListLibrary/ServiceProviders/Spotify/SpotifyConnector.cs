@@ -15,8 +15,7 @@ namespace RunnersListLibrary.ServiceProviders.Spotify;
 // ReSharper disable once ClassNeverInstantiated.Global
 internal class SpotifyConnector(
     IHttpClientFactory httpClientFactory,
-    IOptions<SpotifySecrets> spotifySecrets,
-    ISongBpmConnector songBpmConnector)
+    IOptions<SpotifySecrets> spotifySecrets)
     : ISpotifyConnector
 {
     public async Task<string> GetSpotifyTokenAsync()
@@ -53,7 +52,7 @@ internal class SpotifyConnector(
         var code = queryParams["code"];
         var error = queryParams["error"];
 
-        if(string.IsNullOrWhiteSpace(code))
+        if (string.IsNullOrWhiteSpace(code))
             throw new SpotifyException("No code received from Spotify.");
 
         if (!string.IsNullOrEmpty(error))
@@ -83,38 +82,30 @@ internal class SpotifyConnector(
     }
 
 
-    public async Task<string> GetSongsAsync(string token, string genre)
+    public async Task<IEnumerable<CondensedSpotifySong>> GetSongsAsync(string token, string genre)
     {
         var httpClient = httpClientFactory.CreateClient("SpotifyClient");
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var results = new List<CondensedSpotifySong>();
 
-        for (int i = 0; i < 5; i++)
+        var rndOffset = new Random().Next(1, 10);
+        var response =
+            await httpClient.GetAsync(
+                $"https://api.spotify.com/v1/search?q=genre%3A{genre}&type=track&limit=10&offset={rndOffset}");
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        var data = JsonSerializer.Deserialize<GetTracksResult>(content);
+        if (data == null)
+            throw new SpotifyException("Cannot find any song.");
+        
+        foreach (var song in data.Tracks.Items)
         {
-            var response =
-                await httpClient.GetAsync($"https://api.spotify.com/v1/search?q=genre%3A{genre}&type=track&limit=50&offset={i*50}");
-            response.EnsureSuccessStatusCode();
-
-            var content = await response.Content.ReadAsStringAsync();
-            var data = JsonSerializer.Deserialize<GetTracksResult>(content);
-
-            foreach (var song in data.Tracks.Items)
-            {
-                var condensedSong = ConvertSongToCondensed(song);
-                var songBpm = await GetSongBpm(condensedSong.Artist, condensedSong.Title);
-                condensedSong.Bpm = songBpm;
-                if(songBpm is > 135 and <= 170)
-                    results.Add(condensedSong);
-            }
+            var condensedSong = ConvertSongToCondensed(song);
+            results.Add(condensedSong);
         }
 
-        var resultAsJson = JsonSerializer.Serialize(results);
-        return resultAsJson;
-    }
-
-    public Task<string> CreatePlaylistAsync(string token, string playlistName, string description, IEnumerable<SpotifySong> songs)
-    {
-        throw new NotImplementedException();
+        return results;
     }
 
 
@@ -168,7 +159,7 @@ internal class SpotifyConnector(
     {
         var edgePath = @"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe";
 
-        Process.Start(new ProcessStartInfo()
+        Process.Start(new ProcessStartInfo
         {
             FileName = edgePath,
             Arguments = url,
@@ -186,12 +177,6 @@ internal class SpotifyConnector(
         };
 
         return result;
-    }
-    
-    private async Task<int> GetSongBpm(string artist, string title)
-    {
-        var bpm = await songBpmConnector.GetSongBpmAsync(artist, title);
-        return bpm;
     }
 
     #endregion

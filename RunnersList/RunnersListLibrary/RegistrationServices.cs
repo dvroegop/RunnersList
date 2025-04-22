@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using RunnersListLibrary.GenericFunctions;
 using RunnersListLibrary.ServiceProviders.SongBpm;
 using RunnersListLibrary.ServiceProviders.Spotify;
+using RunnersListWithAgents.ExposedFunctions;
 
 namespace RunnersListLibrary;
 
@@ -11,5 +13,6 @@ public class RegistrationServices
         // Register your services here
         services.AddSingleton<ISpotifyConnector, SpotifyConnector>();
         services.AddSingleton<ISongBpmConnector, SongBpmConnector>();
+        services.AddTransient<IInformationGatherer, InformationGatherer>();
     }
 }

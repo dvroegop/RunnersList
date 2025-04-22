@@ -4,6 +4,7 @@ using Azure.AI.Projects;
 using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RunnersListLibrary.DTO.SpotifyDataObjects;
 using RunnersListLibrary.Secrets;
 using RunnersListLibrary.ServiceProviders.Spotify;
 using RunnersListWithAgents.ExposedFunctions;
@@ -169,7 +170,8 @@ Then we display those songs to the user.
             {
                 var tokenArgument = argumentsJson.RootElement.GetProperty("token").GetString();
                 var genreArgument = argumentsJson.RootElement.GetProperty("genre").GetString();
-                return new ToolOutput(toolCall, await spotifyConnector.GetSongsAsync(tokenArgument ?? throw new InvalidOperationException(), genreArgument ?? throw new InvalidOperationException()));
+                
+                return new ToolOutput(toolCall, (await spotifyConnector.GetSongsAsync(tokenArgument ?? throw new InvalidOperationException(), genreArgument ?? throw new InvalidOperationException())).ToString());
 
             }
         }

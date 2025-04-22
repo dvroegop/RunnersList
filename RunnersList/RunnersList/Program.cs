@@ -1,13 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+using RunnersList;
 using RunnersListLibrary;
 using RunnersListLibrary.Secrets;
-using RunnersListWithAgents;
-using RunnersListWithAgents.ExposedFunctions;
-
-Console.WriteLine("Starting the agent.");
 
 var builder = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -21,20 +17,21 @@ var host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((hostingContext, config) => { config.AddConfiguration(configurationRoot); })
     .ConfigureServices((context, services) =>
     {
-        services.AddTransient<IAgentWrapper, AgentWrapper>();
-        
+        // Register your services here
+        services.AddTransient<IRunnerService, RunnerService>();
 
-        // Register additional services
+        var registrationServices = new RegistrationServices();
+        registrationServices.RegisterServices(services);
+
+        // Add local services
         services.AddHttpClient();
-        var runnersListLibraryRegistrationServices = new RegistrationServices();
-        runnersListLibraryRegistrationServices.RegisterServices(services);
 
+        // Add secrets
         services.Configure<OpenAiSecrets>(context.Configuration.GetSection("OpenAiSecrets"));
         services.Configure<SpotifySecrets>(context.Configuration.GetSection("SpotifySecrets"));
         services.Configure<SongBpmSecrets>(context.Configuration.GetSection("SongBpmSecrets"));
     })
     .Build();
 
-var agentWrapper = host.Services.GetRequiredService<IAgentWrapper>();
-
-await agentWrapper.RunAgent();
+var runnerService = host.Services.GetRequiredService<IRunnerService>();
+await runnerService.RunAsync();

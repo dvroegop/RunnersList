@@ -8,8 +8,9 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using RunnersListLibrary.Secrets;
 using RunnersListWithAgents.DTO;
+using RunnersListWithAgents.ExposedFunctions;
 
-namespace RunnersListWithAgents.ExposedFunctions;
+namespace RunnersListLibrary.GenericFunctions;
 
 internal class InformationGatherer(
     ILogger<InformationGatherer> logger,
