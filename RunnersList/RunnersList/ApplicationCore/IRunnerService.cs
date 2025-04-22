@@ -1,4 +1,4 @@
-﻿namespace RunnersList;
+﻿namespace RunnersList.ApplicationCore;
 
 public interface IRunnerService
 {

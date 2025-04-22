@@ -25,13 +25,17 @@ internal class InformationGatherer(
     /// </returns>
     public async Task<string> GetFavoriteMusicGenre()
     {
+        // 1. Create the kernel
         var kernel = SetupKernel(out var chatCompletionService);
 
+        // 2. Set up the initial prompt
         var history = SetupStartPrompts();
 
+        // 3. Run through the conversation
         var finalAnswer = string.Empty;
         var canContinue = true;
 
+        #region The conversation loop
         while (canContinue)
         {
             var responseBuilder = new StringBuilder();
@@ -69,15 +73,26 @@ internal class InformationGatherer(
                     Console.WriteLine("Please provide a valid input.");
             }
         }
+        #endregion
 
+
+        // 4. Return the final answer
         return finalAnswer;
     }
 
     /// <summary>
-    /// 
+    /// Extracts the music genre from the given response string.
     /// </summary>
-    /// <param name="responseFromAssistant"></param>
-    /// <returns></returns>
+    /// <param name="responseFromAssistant">
+    /// The response string received from the assistant, which may contain the genre information.
+    /// </param>
+    /// <returns>
+    /// A string representing the extracted music genre. Returns an empty string if the genre cannot be determined.
+    /// </returns>
+    /// <remarks>
+    /// This method attempts to deserialize the response as a JSON object to extract the genre. 
+    /// If deserialization fails, it falls back to using a regular expression to locate the genre in the response.
+    /// </remarks>
     private static string ExtractGenre(string responseFromAssistant)
     {
         string finalAnswer = string.Empty;
@@ -127,7 +142,7 @@ internal class InformationGatherer(
             endPoint,
             apiKey);
 
-        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Trace));
+        kernelBuilder.Services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Error));
         var kernel = kernelBuilder.Build();
 
         chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
