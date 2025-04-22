@@ -119,7 +119,7 @@ internal class SpotifyConnector(
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var results = new List<CondensedSpotifySong>();
 
-        var rndOffset = new Random().Next(1, 10);
+        var rndOffset = new Random(DateTime.Now.Millisecond).Next(1, 50);
         var response =
             await httpClient.GetAsync(
                 $"https://api.spotify.com/v1/search?q=genre%3A{genre}&type=track&limit=10&offset={rndOffset}");
