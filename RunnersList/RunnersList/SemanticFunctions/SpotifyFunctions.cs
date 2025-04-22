@@ -15,7 +15,6 @@ public class SpotifyFunctions(ISpotifyConnector spotifyConnector)
     #endregion
 
 
-
     #region
     #region
     // Use snake_case for kernel functions, since that is the standard for Python. 

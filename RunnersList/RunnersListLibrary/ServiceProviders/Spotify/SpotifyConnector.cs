@@ -16,24 +16,7 @@ internal class SpotifyConnector(
     IOptions<SpotifySecrets> spotifySecrets)
     : ISpotifyConnector
 {
-    
-    /// <summary>
-    /// Initiates the Spotify authorization process to retrieve an access token.
-    /// </summary>
-    /// <remarks>
-    /// This method launches a browser to authenticate the user with Spotify and listens for the redirect 
-    /// containing the authorization code. It then exchanges the authorization code for an access token.
-    /// </remarks>
-    /// <returns>
-    /// A <see cref="Task{TResult}"/> representing the asynchronous operation, with a result of the Spotify access token as a <see cref="string"/>.
-    /// </returns>
-    /// <exception cref="Exception">
-    /// Thrown when a valid request cannot be retrieved or other unexpected errors occur during the process.
-    /// </exception>
-    /// <exception cref="SpotifyException">
-    /// Thrown when there is an error during Spotify authorization, such as missing or invalid state, 
-    /// missing authorization code, or failure to retrieve the access token.
-    /// </exception>
+       
     public async Task<string> GetSpotifyTokenAsync()
     {
         var client = httpClientFactory.CreateClient("SpotifyClient");
