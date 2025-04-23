@@ -5,13 +5,6 @@ VisualStudioVersion = 17.13.35723.152
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnersListLibrary", "RunnersListLibrary\RunnersListLibrary.csproj", "{2A64B935-8BFF-4601-A046-EE5F84E78ECF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnersListWithAgents", "RunnersListWithAgents\RunnersListWithAgents.csproj", "{32CCEB08-3179-4248-B12B-6FC63BC52D83}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RESTTester", "RESTTester", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		RestTests.http = RestTests.http
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunnersList", "RunnersList\RunnersList.csproj", "{0D8F735D-D626-82E5-D9E3-C4BFDA80B26F}"
 EndProject
 Global
@@ -24,10 +17,6 @@ Global
 		{2A64B935-8BFF-4601-A046-EE5F84E78ECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A64B935-8BFF-4601-A046-EE5F84E78ECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A64B935-8BFF-4601-A046-EE5F84E78ECF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32CCEB08-3179-4248-B12B-6FC63BC52D83}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0D8F735D-D626-82E5-D9E3-C4BFDA80B26F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0D8F735D-D626-82E5-D9E3-C4BFDA80B26F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D8F735D-D626-82E5-D9E3-C4BFDA80B26F}.Release|Any CPU.ActiveCfg = Release|Any CPU
